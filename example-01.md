@@ -1,5 +1,7 @@
 ```yaml
-apiVersion: apps/v1
+apiVe
+
+rsion: apps/v1
 kind: Deployment
 metadata:
   name: microservice-red
@@ -18,12 +20,24 @@ spec:
         app: microservice
         version: red
     spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - microservice
+            topologyKey: "topology.kubernetes.io/zone"
       containers:
       - name: microservice
         image: microservice:red
         ports:
         - containerPort: 80
+
 ---
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -43,6 +57,16 @@ spec:
         app: microservice
         version: green
     spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - microservice
+            topologyKey: "topology.kubernetes.io/zone"
       containers:
       - name: microservice
         image: microservice:green
