@@ -1,7 +1,5 @@
 ```yaml
-apiVe
-
-rsion: apps/v1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: microservice-red
@@ -9,7 +7,6 @@ metadata:
     app: microservice
     version: red
 spec:
-  replicas: 3
   selector:
     matchLabels:
       app: microservice
@@ -35,6 +32,11 @@ spec:
         image: microservice:red
         ports:
         - containerPort: 80
+        resources:
+          requests:
+            cpu: "100m"
+          limits:
+            cpu: "200m"
 
 ---
 
@@ -46,7 +48,6 @@ metadata:
     app: microservice
     version: green
 spec:
-  replicas: 3
   selector:
     matchLabels:
       app: microservice
@@ -72,6 +73,52 @@ spec:
         image: microservice:green
         ports:
         - containerPort: 80
+        resources:
+          requests:
+            cpu: "100m"
+          limits:
+            cpu: "200m"
+
+---
+
+apiVersion: autoscaling/v2beta2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: microservice-red-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: microservice-red
+  minReplicas: 1
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 50
+---
+apiVersion: autoscaling/v2beta2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: microservice-green-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: microservice-green
+  minReplicas: 1
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 50
+
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
